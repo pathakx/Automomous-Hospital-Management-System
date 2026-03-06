@@ -3,11 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import os
-
 from app.config import settings
 from app.database import engine, Base
 from app.routes import auth
-from app.routes import auth, doctors, appointments, records
+from app.routes import auth, doctors, appointments, records, doctor_portal
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -50,6 +49,7 @@ app.add_middleware(
 
 # Serve uploaded files as static files (local dev only)
 if settings.FILE_STORAGE == "local":
+    os.makedirs(os.path.join(settings.UPLOAD_DIR), exist_ok=True)
     app.mount(
         "/uploads",
         StaticFiles(directory="uploads"),
@@ -76,6 +76,8 @@ app.include_router(auth.router)
 app.include_router(doctors.router)
 app.include_router(appointments.router)
 app.include_router(records.router)
+app.include_router(doctor_portal.router)
+
 
 # Root endpoint
 @app.get("/", tags=["System"])

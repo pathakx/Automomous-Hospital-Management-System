@@ -79,3 +79,10 @@ class BillResponse(BaseModel):
 class BillPayment(BaseModel):
     bill_id: str
     payment_method: str
+
+class PrescriptionCreate(BaseModel):
+    patient_id: str
+    appointment_id: Optional[str] = None
+    medication: str
+    dosage: str
+    instructions: str
