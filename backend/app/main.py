@@ -7,7 +7,7 @@ import os
 from app.config import settings
 from app.database import engine, Base
 from app.routes import auth
-
+from app.routes import auth, doctors, appointments, records
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -73,7 +73,9 @@ def health_check():
 
 # Include Routers
 app.include_router(auth.router)
-
+app.include_router(doctors.router)
+app.include_router(appointments.router)
+app.include_router(records.router)
 
 # Root endpoint
 @app.get("/", tags=["System"])
