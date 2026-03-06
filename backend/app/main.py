@@ -6,6 +6,7 @@ import os
 
 from app.config import settings
 from app.database import engine, Base
+from app.routes import auth
 
 
 @asynccontextmanager
@@ -69,6 +70,9 @@ def health_check():
         "version": settings.APP_VERSION,
         "storage": settings.FILE_STORAGE
     }
+
+# Include Routers
+app.include_router(auth.router)
 
 
 # Root endpoint
