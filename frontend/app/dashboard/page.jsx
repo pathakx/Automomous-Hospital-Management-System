@@ -3,7 +3,10 @@
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import ChatWindow from "../../components/ChatWindow";
-
+import AppointmentsPage from "../../components/AppointmentsPage";
+import ReportsPage from "../../components/ReportsPage";
+import PrescriptionsPage from "../../components/PrescriptionsPage";
+import BillingPage from "../../components/BillingPage";
 
 export default function DashboardPage() {
     // State to track which view is active; defaults to "chat"
@@ -12,6 +15,14 @@ export default function DashboardPage() {
     // Function to render the correct component based on active tab
     const renderContent = () => {
         switch (activeTab) {
+            case "appointments":
+                return <AppointmentsPage />;
+            case "reports":
+                return <ReportsPage />;
+            case "prescriptions":
+                return <PrescriptionsPage />;
+            case "billing":
+                return <BillingPage />;
             case "chat":
                 return <ChatWindow />;
             case "appointments":
