@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
+import ChatWindow from "../../components/ChatWindow";
+
 
 export default function DashboardPage() {
     // State to track which view is active; defaults to "chat"
@@ -11,13 +13,7 @@ export default function DashboardPage() {
     const renderContent = () => {
         switch (activeTab) {
             case "chat":
-                return (
-                    <div className="p-8 h-full flex flex-col items-center justify-center text-center">
-                        <span className="text-6xl mb-4">💬</span>
-                        <h2 className="text-2xl font-bold text-gray-800">Chat Interface (Coming in Part 4)</h2>
-                        <p className="text-gray-500 mt-2">The AI agent chat screen will be rendered here.</p>
-                    </div>
-                );
+                return <ChatWindow />;
             case "appointments":
                 return (
                     <div className="p-8">
