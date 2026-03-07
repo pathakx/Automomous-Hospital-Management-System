@@ -18,7 +18,7 @@ class DoctorResponse(BaseModel):
     name: str
     specialization: str
     department: Optional[str] = None
-    experience_years: int
+    experience_years: Optional[int] = 0
     consultation_fee: float
     schedules: List[DoctorScheduleResponse] = []
 
@@ -86,3 +86,20 @@ class PrescriptionCreate(BaseModel):
     medication: str
     dosage: str
     instructions: str
+
+# --- APPOINTMENT UPDATE SCHEMAS ---
+class AppointmentReschedule(BaseModel):
+    appointment_date: date
+    appointment_time: time
+
+# --- PATIENT SCHEMA (for Doctor Portal) ---
+class PatientResponse(BaseModel):
+    id: str
+    name: str
+    phone: str
+    email: Optional[str] = None
+    blood_group: Optional[str] = None
+    allergies: Optional[str] = None
+
+    class Config:
+        from_attributes = True

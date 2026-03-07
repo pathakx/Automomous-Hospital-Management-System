@@ -8,6 +8,9 @@ from app.models.patient import Patient
 from app.services.auth_service import get_password_hash, verify_password, create_access_token, create_refresh_token
 from app.services.deps import get_current_user
 
+from jose import jwt, JWTError
+from app.config import settings
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=UserResponse)
@@ -79,3 +82,38 @@ def get_profile(current_user: User = Depends(get_current_user)):
     Protected route. You must send the Authorization: Bearer <token> header to access this.
     """
     return current_user
+
+@router.post("/refresh-token", response_model=Token)
+def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+    """
+    Validate a refresh token and issue a new access token.
+    Send the refresh_token as a query parameter or in the request body.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or expired refresh token",
+    )
+    try:
+        payload = jwt.decode(refresh_token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        
+        if user_id is None or token_type != "refresh":
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    # Verify user still exists and is active
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None or not user.is_active:
+        raise credentials_exception
+    
+    # Issue new tokens
+    new_access_token = create_access_token(data={"sub": user.id, "role": user.role, "linked_id": user.linked_id})
+    new_refresh_token = create_refresh_token(data={"sub": user.id})
+    
+    return {
+        "access_token": new_access_token,
+        "token_type": "bearer",
+        "refresh_token": new_refresh_token
+    }

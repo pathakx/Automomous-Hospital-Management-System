@@ -5,9 +5,7 @@ from contextlib import asynccontextmanager
 import os
 from app.config import settings
 from app.database import engine, Base
-from app.routes import auth
-from app.routes import auth, doctors, appointments, records, doctor_portal
-
+from app.routes import auth, doctors, appointments, records, doctor_portal, chat
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -77,6 +75,7 @@ app.include_router(doctors.router)
 app.include_router(appointments.router)
 app.include_router(records.router)
 app.include_router(doctor_portal.router)
+app.include_router(chat.router)
 
 
 # Root endpoint

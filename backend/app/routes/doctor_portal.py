@@ -8,7 +8,7 @@ from app.models.patient import Patient
 from app.models.user import User
 from app.models.prescription import Prescription
 from app.models.lab_report import LabReport
-from app.schemas.hospital import AppointmentResponse, PrescriptionResponse, PrescriptionCreate, LabReportResponse
+from app.schemas.hospital import AppointmentResponse, PrescriptionResponse, PrescriptionCreate, LabReportResponse, PatientResponse
 from app.services.deps import get_current_doctor
 from app.services.storage_service import StorageService
 
@@ -21,6 +21,21 @@ def get_doctor_appointments(db: Session = Depends(get_db), current_user: User = 
         Appointment.doctor_id == current_user.linked_id
     ).order_by(Appointment.appointment_date.asc(), Appointment.appointment_time.asc()).all()
 
+@router.get("/my-patients", response_model=List[PatientResponse])
+def get_doctor_patients(db: Session = Depends(get_db), current_user: User = Depends(get_current_doctor)):
+    """Get all unique patients who have had appointments with this doctor."""
+    appointments = db.query(Appointment).filter(
+        Appointment.doctor_id == current_user.linked_id
+    ).all()
+    
+    # Get unique patient IDs
+    patient_ids = list(set([appt.patient_id for appt in appointments]))
+    
+    if not patient_ids:
+        return []
+    
+    patients = db.query(Patient).filter(Patient.id.in_(patient_ids)).all()
+    return patients
 
 @router.post("/prescriptions/write", response_model=PrescriptionResponse)
 def write_prescription(
