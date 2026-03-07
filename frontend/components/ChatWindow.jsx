@@ -1,16 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import { sendChatMessage } from "../services/api";
 
 export default function ChatWindow() {
     const [messages, setMessages] = useState([
-        { role: "assistant", text: "👋 Welcome! I'm your hospital assistant. How can I help you today?" }
+        { role: "assistant", text: "👋 Welcome! I'm your hospital assistant. How can I help you today?", type: "text" }
     ]);
     const [isTyping, setIsTyping] = useState(false);
+    const [conversationId, setConversationId] = useState(null); // Will store ID from backend
     const messagesEndRef = useRef(null);
+    const { user } = useAuth(); // Needed to send patient_id to backend
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -22,16 +25,26 @@ export default function ChatWindow() {
 
     const handleSendMessage = async (text) => {
         // 1. Add user message
-        const newMessages = [...messages, { role: "user", text }];
+        const newMessages = [...messages, { role: "user", text, type: "text" }];
         setMessages(newMessages);
         setIsTyping(true);
 
         try {
-            // 2. Call backend
-            const response = await sendChatMessage(text);
+            // 2. Call backend with full contract
+            const response = await sendChatMessage(text, user?.linked_id, conversationId);
 
-            // 3. Add assistant response
-            setMessages((prev) => [...prev, { role: "assistant", text: response.reply }]);
+            // 3. Keep track of Conversation ID if backend returns a new one
+            if (response.conversation_id && !conversationId) {
+                setConversationId(response.conversation_id);
+            }
+
+            // 4. Add assistant response (now handles structured data types!)
+            setMessages((prev) => [...prev, {
+                role: "assistant",
+                text: response.reply,
+                type: response.type || "text",
+                data: response.data || null
+            }]);
         } catch (error) {
             console.error("Chat error:", error);
             setMessages((prev) => [

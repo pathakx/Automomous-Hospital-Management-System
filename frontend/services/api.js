@@ -62,8 +62,12 @@ export const getProfile = async () => {
     return response.data;
 };
 
-export const sendChatMessage = async (message) => {
-    const response = await api.post("/chat/message", { message });
+export const sendChatMessage = async (message, patient_id, conversation_id = null) => {
+    const response = await api.post("/chat/message", {
+        message,
+        patient_id,
+        conversation_id
+    });
     return response.data;
 };
 
