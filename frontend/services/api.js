@@ -21,6 +21,21 @@ api.interceptors.request.use((config) => {
 }, (error) => {
     return Promise.reject(error);
 });
+// Add a Response Interceptor to globally handle expired tokens
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // If we receive a 401 Unauthorized, the token is invalid/expired
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+                window.location.href = "/login"; // Force redirect to login
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 // 3. Define and export all API functions
 export const loginUser = async (email, password) => {
