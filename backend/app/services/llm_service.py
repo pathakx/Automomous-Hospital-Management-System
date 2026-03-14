@@ -4,8 +4,17 @@ from groq import Groq
 from app.config import settings
 from app.prompts.system_prompt import CHAT_SYSTEM_PROMPT
 from app.schemas.llm import IntentResponse
+from app.constants import ALLOWED_INTENTS   
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)                
 
 logger = logging.getLogger(__name__)
+
+# Add this constant below imports
+CONFIDENCE_THRESHOLD = 0.50                  
 
 # Initialize Groq client once at module load time
 client = Groq(api_key=settings.GROQ_API_KEY)
@@ -44,6 +53,58 @@ def build_messages(user_message: str, history: list[dict]) -> list[dict]:
     return messages
 
 
+def validate_intent_response(parsed: dict) -> dict:
+    """
+    Validates the raw dictionary returned by the LLM.
+    Checks:
+    1. The 'intent' key exists and is one of the 10 allowed strings.
+    2. The 'confidence' key exists and is a float >= CONFIDENCE_THRESHOLD.
+    3. The 'entities' key exists and is a dict.
+
+    If any check fails, returns the GENERAL_MEDICAL_QUERY fallback.
+
+    Args:
+        parsed: The raw dictionary from json.loads() of the LLM response.
+
+    Returns:
+        A validated dictionary, or the safe fallback dictionary.
+    """
+    fallback = {
+        "intent": "GENERAL_MEDICAL_QUERY",
+        "entities": {},
+        "confidence": 1.0
+    }
+
+    # Check 1: 'intent' key must exist and be a valid string
+    intent = parsed.get("intent")
+    if not intent or not isinstance(intent, str):
+        logger.warning("LLM response missing 'intent' key. Using fallback.")
+        return fallback
+
+    # Check 2: intent must be one of the 10 allowed values
+    if intent not in ALLOWED_INTENTS:
+        logger.warning(f"LLM returned unknown intent '{intent}'. Using fallback.")
+        return fallback
+
+    # Check 3: 'confidence' must exist and be above the threshold
+    confidence = parsed.get("confidence")
+    if confidence is None or not isinstance(confidence, (int, float)):
+        logger.warning("LLM response missing valid 'confidence'. Using fallback.")
+        return fallback
+
+    if float(confidence) < CONFIDENCE_THRESHOLD:
+        logger.warning(f"LLM confidence too low ({confidence}). Using fallback.")
+        return fallback
+
+    # Check 4: 'entities' must be a dictionary (even if empty)
+    entities = parsed.get("entities")
+    if entities is None or not isinstance(entities, dict):
+        logger.warning("LLM response missing valid 'entities'. Defaulting entities to {}.")
+        parsed["entities"] = {}  # Recover gracefully instead of full fallback
+
+    return parsed
+
+
 async def parse_user_message(user_message: str, history: list[dict] = []) -> dict:
     """
     Sends the user's message to Groq (Llama 3 70B) and returns
@@ -80,7 +141,9 @@ async def parse_user_message(user_message: str, history: list[dict] = []) -> dic
             f"confidence={parsed.get('confidence')}"
         )
 
-        return parsed
+        # Validate the parsed output before returning
+        validated = validate_intent_response(parsed)
+        return validated
 
     except Exception as e:
         logger.error(f"LLM service error: {e}")
