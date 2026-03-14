@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     APP_NAME: str = "Hospital AI Chatbot"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
+
+    # Groq
+    GROQ_API_KEY: Optional[str] = None
     
     class Config:
         env_file = ".env"
