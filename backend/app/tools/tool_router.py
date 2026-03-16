@@ -254,12 +254,12 @@ async def route_to_tool(
             success=True,
             data={
                 "message": (
-                    "I'm here to help! You can ask me to:\n"
-                    "• Book, cancel, or reschedule appointments\n"
-                    "• Check doctor availability\n"
-                    "• View your lab reports or prescriptions\n"
-                    "• View or pay your bills\n"
-                    "• Analyze your symptoms\n\n"
+                    "I'm here to help! Here's what you can ask me:\n\n"
+                    "- Book, cancel, or reschedule appointments\n"
+                    "- Check doctor availability\n"
+                    "- View your lab reports or prescriptions\n"
+                    "- View or pay your bills\n"
+                    "- Analyze your symptoms\n\n"
                     "How can I assist you today?"
                 )
             },

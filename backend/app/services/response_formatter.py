@@ -120,7 +120,7 @@ def format_tool_result(intent: str, result: ToolResult) -> dict:
             date = data.get("date", "the selected date")
             reply = (
                 f"Here are the available slots for **{date}**:\n"
-                + "\n".join(f"• {s}" for s in slots[:10])  # Show max 10 slots
+                + "\n".join(f"- {s}" for s in slots[:10])  # Show max 10 slots
             )
             return {"reply": reply, "type": "text", "data": {"slots": slots, "date": date}}
 
@@ -259,12 +259,12 @@ def format_tool_result(intent: str, result: ToolResult) -> dict:
 
         severity_emoji = {"mild": "🟡", "moderate": "🟠", "severe": "🔴"}.get(severity, "⚪")
 
-        conditions_text = "\n".join(f"• {c}" for c in conditions[:5])
+        conditions_text = "\n".join(f"- {c}" for c in conditions[:5])
         reply = (
             f"{severity_emoji} **Severity: {severity.capitalize()}**\n\n"
             f"**Recommended Department:** {dept}\n\n"
-            f"**Possible Conditions:**\n{conditions_text}\n\n"
-            f"_{disclaimer}_"
+            f"**Possible Conditions:**\n\n{conditions_text}\n\n"
+            f"*{disclaimer}*"
         )
         return {"reply": reply, "type": "symptom_analysis", "data": data}
 
