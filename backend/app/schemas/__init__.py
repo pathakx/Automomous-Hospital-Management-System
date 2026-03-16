@@ -6,3 +6,4 @@ from app.schemas.hospital import (
     PrescriptionCreate, PatientResponse
 )
 from app.schemas.chat import ChatRequest, ChatResponse
+from app.schemas.tool_result import ToolResult
