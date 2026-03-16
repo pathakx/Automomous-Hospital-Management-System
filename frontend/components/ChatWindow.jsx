@@ -24,36 +24,48 @@ export default function ChatWindow() {
     }, [messages, isTyping]);
 
     const handleSendMessage = async (text) => {
-        // 1. Add user message
-        const newMessages = [...messages, { role: "user", text, type: "text" }];
-        setMessages(newMessages);
-        setIsTyping(true);
+    // 1. Add user message
+    const newMessages = [...messages, { role: "user", text, type: "text" }];
+    setMessages(newMessages);
+    setIsTyping(true);
 
-        try {
-            // 2. Call backend with full contract
-            const response = await sendChatMessage(text, user?.linked_id, conversationId);
+    try {
+        // NOTE: exclude the last item we just pushed (the user message itself)
+        // to avoid duplicating it — the current message is already sent as 'message'
+        const historyToSend = messages; // all messages in state before the new user message
 
-            // 3. Keep track of Conversation ID if backend returns a new one
-            if (response.conversation_id && !conversationId) {
-                setConversationId(response.conversation_id);
-            }
+        // 2. Call backend with full contract
+        const response = await sendChatMessage(
+            text,
+            user?.linked_id,
+            conversationId,
+            historyToSend
+        );
 
-            // 4. Add assistant response (now handles structured data types!)
-            setMessages((prev) => [...prev, {
+        // 3. Keep track of Conversation ID if backend returns a new one
+        if (response.conversation_id && !conversationId) {
+            setConversationId(response.conversation_id);
+        }
+
+        // 4. Add assistant response (now handles structured data types!)
+        setMessages((prev) => [
+            ...prev,
+            {
                 role: "assistant",
                 text: response.reply,
                 type: response.type || "text",
                 data: response.data || null
-            }]);
-        } catch (error) {
-            console.error("Chat error:", error);
-            setMessages((prev) => [
-                ...prev,
-                { role: "system", text: "Connection error. Please try again." }
-            ]);
-        } finally {
-            setIsTyping(false);
-        }
+            }
+        ]);
+    } catch (error) {
+        console.error("Chat error:", error);
+        setMessages((prev) => [
+            ...prev,
+            { role: "system", text: "Connection error. Please try again." }
+        ]);
+    } finally {
+        setIsTyping(false);
+    }
     };
 
     return (
